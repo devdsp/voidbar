@@ -67,14 +67,15 @@ def do_user(user):
         user['identifier'],user['balance']
     )
 
-    line = readline(prompt = "VoidBar/" + user['identifier'] + "> ")
-    if line == 'exit':
-        return
-    
-    item = get_item(line)
+    while True:
+        line = readline(prompt = "VoidBar/" + user['identifier'] + "> ")
+        if line == 'exit' or line == '':
+            break
 
-    if item:
-        do_user_item( user, item )
+        item = get_item(line)
+
+        if item:
+            do_user_item( user, item )
 
 def do_item(item):
     print "%s is %s, it %s $%0.02f" % (

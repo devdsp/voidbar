@@ -98,8 +98,67 @@ def do_user_item(user,item):
     print "Your new balance is: $%.02f" % (user['balance']) 
 
 def do_new(barcode):
-    print "I don't recognise that barcode..."
-    print "and Adam hasn't finished programming me. So you can't teach me yet."
+    print "I don't recognise that input..."
+    print "Do you want to add a new [item], [user] or account [identifier]?"
+    while True:
+        line = readline( prompt = "VoidBar/new> ")
+        if line == 'exit' or line == '':
+            break
+        if line == 'item':
+            return do_new_item(barcode)
+        if line == 'user':
+            return do_new_user(barcode)
+        if line == 'identifier':
+            return do_new_identifier(barcode)
+
+
+def do_new_item(barcode):
+    print "Adding %s as a new item.";
+    print "What is this item?"
+    description = readline(prompt = "VoidBar/new/item: Description > ")
+    if not description:
+        print "You didn't give a description"
+        return;
+    print "What affect does this have on the user's balance?"
+    print "NOTE: if it costs money to buy this item then the number must be negative"
+    value = float(readline(prompt = "VoidBar/new/item: value > "))
+    if not value:
+        print "You didn't give a value"
+        return;
+    
+    cur = db.cursor()
+    cur.execute( "insert into items (identifier,value,description) values (?,?,?)", ( barcode, value, description ) )
+    db.commit()
+    cur.close()
+
+
+def do_new_user(barcode):
+    print "Adding %s as a new user account.";
+    print "Who is this user?"
+    description = readline(prompt = "VoidBar/new/user: Description > ")
+    if not description:
+        print "You didn't give a description"
+        return;
+    
+    cur = db.cursor()
+    cur.execute( "insert into accounts (description, balance) values (?,?)", ( description,0 ) )
+    cur.execute( "insert into users (account_id, identifier) values (?,?)", (cur.lastrowid,barcode ) )
+    db.commit()
+    cur.close()
+
+def do_new_identifier(barcode):
+    print "Adding %s as a new identifier.";
+    print "Use an existing identifer to bind the new identifier"
+    user = get_user(readline(prompt = "VoidBar/new/identifer: existing > "))
+    if not user:
+        print "couldn't get the user from that token"
+        return;
+    
+    cur = db.cursor()
+    cur.execute( "insert into users (account_id, identifier) values (?,?)", (user['account_id'],barcode ) )
+    db.commit()
+    cur.close()
+
 
 print "VoidBar POS system writen by Adam, inspired by Brmbar"
 

@@ -5,13 +5,13 @@ import sys
 import select
 import sqlite3
 
-db = sqlite3.connect('data.db')
+db = sqlite3.connect('data.sqlite')
 db.row_factory = sqlite3.Row
 
 def get_user(identifier):
     cur = db.cursor()
     user = cur.execute(
-        "select * from users where identifier=?",(identifier,)
+        "select * from users join accounts on users.account_id = accounts.id where users.identifier=?",(identifier,)
     ).fetchone()
     cur.close()
     return user
@@ -64,11 +64,11 @@ def idle():
 
 def do_user(user):
     print "Hi %s, your balance is $%.02f" % (
-        user['identifier'],user['balance']
+        user['description'],user['balance']
     )
 
     while True:
-        line = readline(prompt = "VoidBar/" + user['identifier'] + "> ")
+        line = readline(prompt = "VoidBar/" + user['description'] + "> ")
         if line == 'exit' or line == '':
             break
 
@@ -80,7 +80,7 @@ def do_user(user):
 def do_item(item):
     print "%s is %s, it %s $%0.02f" % (
         item['identifier'], 
-        item['name'], 
+        item['description'],
         "costs" if item['value'] < 0 else "credits",
         item['value'] if item['value'] > 0 else -item['value']
     ) 
@@ -89,8 +89,8 @@ def do_user_item(user,item):
     do_item(item);
     cur = db.cursor();
     cur.execute(
-        'UPDATE users SET balance = balance + ? WHERE identifier = ?',
-        (item['value'],user['identifier'])
+        'UPDATE accounts SET balance = balance + ? WHERE id = ?',
+        (item['value'],user['id'])
     )
     db.commit()
     cur.close()
